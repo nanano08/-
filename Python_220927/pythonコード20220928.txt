@@ -1,0 +1,141 @@
+import serial  # 実際はpyserialをDLする
+import pygame
+import random
+import time
+from pythonosc import udp_client
+from pythonosc.osc_message_builder import OscMessageBuilder
+
+'Processing3.5.4のpro_change_editスクリプトとセットで使うスクリプト'
+IP = '127.0.0.1'
+PORT = 6700
+ch_list0 = [-1,-1]
+
+# UDPのクライアントを作る
+client = udp_client.UDPClient(IP, PORT)
+# portセット(必要に応じて変更する、Core2はCOM6と115200かも，StickC PlusはCOM4と9600)
+ser = serial.Serial('COM5', 9600)
+
+# Music
+pygame.mixer.init()
+# pygame.mixer.music.load("Short60_techno_01.mp3")
+# pygame.mixer.music.play()
+
+
+"""
+for k in range(10):
+    msg = OscMessageBuilder(address='/color')
+    msg.add_arg(random.randint(0, 255))
+    msg.add_arg(random.randint(0, 255))
+    msg.add_arg(random.randint(0, 255))
+    m = msg.build()
+"""
+
+while 1:
+    # portから値受け取り
+    line = ser.readline()
+    line_disp = line.strip().decode('UTF-8')
+    # print(line_disp)
+    sp_li_di = line_disp.split(',')
+    # print('分割' + str(sp_li_di))
+
+    # 音楽切り替え処理
+    for ls_Num in range(1):
+        ch_list0[ls_Num - 1] = ch_list0[ls_Num]
+
+    in_list = int(float(sp_li_di[0]))
+    ch_list0[0] = int(float(sp_li_di[0]))
+
+    # 下のプリント文はデバッグ用
+    # print(ch_list0[0])
+    # print(ch_list0[1])
+
+    while ch_list0[0] != ch_list0[1]:
+        if in_list == 0:
+            # print(in_list)
+            # pygame.mixer.init()
+            pygame.mixer.music.load("Short_SF_02.mp3")
+            # pygame.mixer.music.play()
+            pygame.mixer.music.set_volume(0.5)
+            pygame.mixer.music.play(-1)  # -1でループ再生
+            break
+        elif in_list == 1:
+            # print(in_list)
+            # pygame.mixer.init()
+            pygame.mixer.music.load("自然_03.mp3")
+            # pygame.mixer.music.play()
+            pygame.mixer.music.set_volume(0.8)
+            pygame.mixer.music.play(-1)  # -1でループ再生
+            break
+        elif in_list == 2:
+            # print(in_list)
+            pygame.mixer.init()
+            pygame.mixer.music.load("テクノ_03.mp3")
+            pygame.mixer.music.play()
+            pygame.mixer.music.set_volume(0.8)
+            pygame.mixer.music.play(-1)  # -1でループ再生
+            break
+        elif in_list == 3:
+            # print(in_list)
+            # pygame.mixer.init()
+            pygame.mixer.music.load("MusicBox_04.mp3")
+            # pygame.mixer.music.play()
+            pygame.mixer.music.set_volume(0.8)
+            pygame.mixer.music.play(-1)  # -1でループ再生
+            break
+        elif in_list == 4:
+            # print(in_list)
+            # pygame.mixer.init()
+            pygame.mixer.music.load("Short60_MaemukiPoP_01.mp3")
+            # pygame.mixer.music.play()
+            pygame.mixer.music.set_volume(0.8)
+            pygame.mixer.music.play(-1)  # -1でループ再生
+            break
+        elif in_list == 100:  # 終了時の処理、100に変更する
+            # print(in_list)
+            # pygame.mixer.init()
+            # pygame.mixer.music.load("Short60_techno_01.mp3")
+            # pygame.mixer.music.play()
+            # pygame.mixer.music.set_volume(0.8)
+            # pygame.mixer.music.play(-1)  # -1でループ再生
+            pygame.mixer.music.pause()  # 0926ADD
+            break
+        else:
+            print("debug now")
+            break
+
+
+
+    # Processingで受け取り
+    msg = OscMessageBuilder(address='/color')
+    # msg.add_arg(random.randint(0, 255))
+    # msg.add_arg(random.randint(0, 255))
+    # msg.add_arg(random.randint(0, 255))
+    # msg.add_arg(random.randint(10, 90))
+
+    msg.add_arg(float(sp_li_di[0]))  # 運動種類の番号
+    msg.add_arg(float(sp_li_di[1]))  # 運動開始前の10秒カウントダウン（開始後はずっと0）
+    msg.add_arg(float(sp_li_di[2]))  # ウォーキング回数
+    msg.add_arg(float(sp_li_di[3]))  # スクワット回数
+    msg.add_arg(float(sp_li_di[4]))  # サイドプランクの分.秒数
+    msg.add_arg(float(sp_li_di[5]))  # ランジ回数
+    # Core2から受け取る値の数の分、箱を用意する
+    msg.add_arg(float(sp_li_di[6]))  # accX ウォーキング
+    #print(sp_li_di[4])
+    msg.add_arg(float(sp_li_di[7]))  # accY ウォーキング
+    msg.add_arg(float(sp_li_di[8]))  # accZ ウォーキング
+    msg.add_arg(float(sp_li_di[9]))  # gyroX ウォーキング
+    msg.add_arg(float(sp_li_di[10]))  # gyroY
+    msg.add_arg(float(sp_li_di[11]))  # gyroZ
+    msg.add_arg(float(sp_li_di[12]))  # pitch（姿勢角データ）
+    msg.add_arg(float(sp_li_di[13]))  # roll（姿勢角データ） スクワット
+    msg.add_arg(float(sp_li_di[14]))  # yaw（姿勢角データ）
+    msg.add_arg(float(sp_li_di[15]))  # x_angle（加速度を元に角度を出している） サイドプランクとランジ
+    msg.add_arg(float(sp_li_di[16]))  # y_angle（加速度を元に角度を出している）　サイドプランクとランジ
+
+    m = msg.build()
+
+    # print(m.address, m.params)
+
+    client.send(m)
+
+    # time.sleep(0.1)
